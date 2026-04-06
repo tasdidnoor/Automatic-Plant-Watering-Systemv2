@@ -1,22 +1,22 @@
-# 🪴 Auto Plant Watering System (Java & Arduino)
+# Auto Plant Watering System (Java & Arduino)
 
 A modern, high-tech plant watering system that keeps your green friends happy automatically! This project uses **Java (Firmata4j)** to talk to an **Arduino** board, providing a real-time monitoring dashboard, data logging, and an interactive hardware setup.
 
 ---
 
-## ✨ Features
-- **💧 Smart Watering:** Automatically detects soil moisture and waters the plant for 5 seconds when it gets too dry.
-- **🎛️ Interactive Calibration:** Use a potentiometer to set your custom "Dry Threshold" visually on an OLED screen.
-- **📊 Real-time Monitoring:**
+## Features
+- **Smart Watering:** Automatically detects soil moisture and waters the plant for 5 seconds when it gets too dry.
+- **Interactive Calibration:** Use a potentiometer to set your custom "Dry Threshold" visually on an OLED screen.
+- **Real-time Monitoring:**
     - **OLED Display:** Shows live moisture levels, thresholds, and watering status.
     - **Live Graphing:** A pop-up window shows soil moisture trends over time.
     - **Data Logging:** Every cycle is logged into a CSV file (`water_log.csv`) for future analysis.
-- **🚨 Emergency Stop:** A physical button allows you to stop the system immediately in case of overflow or issues.
-- **🔊 Audio-Visual Feedback:** Integrated Buzzer and LED patterns for system status (startup countdown, watering, and emergency).
+- **Emergency Stop:** A physical button allows you to stop the system immediately in case of overflow or issues.
+- **Audio-Visual Feedback:** Integrated Buzzer and LED patterns for system status (startup countdown, watering, and emergency).
 
 ---
 
-## 🛠️ Hardware Requirements
+## Hardware Requirements
 To build this, you'll need:
 1. **Arduino Uno** (or compatible board)
 2. **Capacitive Soil Moisture Sensor** (Connected to **A2**)
@@ -29,7 +29,7 @@ To build this, you'll need:
 
 ---
 
-## 🚀 Getting Started (Step-by-Step)
+## Getting Started (Step-by-Step)
 
 If you've never used GitHub or Java before, follow these steps:
 
@@ -63,7 +63,7 @@ If IntelliJ says "Project SDK not defined" or "Library missing":
 
 ---
 
-## 📖 How to Use
+## How to Use
 1. **Startup:** The system will connect to your Arduino.
 2. **Threshold Setting:** Turn the potentiometer knob to set how "dry" you want the soil to be before it waters. Press the **Button** (D6) once to confirm.
 3. **Countdown:** The system will count down (3, 2, 1) with beeps and lights.
@@ -75,10 +75,18 @@ If IntelliJ says "Project SDK not defined" or "Library missing":
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 - `src/`: Contains all Java source code.
 - `lib/`: All necessary `.jar` libraries for Firmata4j, Graphing, and Logging.
 - `water_log.csv`: Automatically generated file containing your plant's data history.
 
 ---
-*Created with ❤️ for smarter plants.*
+
+## License
+This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+If you have any questions or need assistance, feel free to reach out at: contact@tasdidnoor.com
+
+---
+*Created for smarter plants.*
