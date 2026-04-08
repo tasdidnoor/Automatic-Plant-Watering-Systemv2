@@ -1,7 +1,7 @@
 import org.firmata4j.IODevice;
 import org.firmata4j.firmata.FirmataDevice;
 
-public class main {
+public class Main {
 
     public static void main(String[] args) throws Exception {
 
@@ -10,7 +10,7 @@ public class main {
         System.out.println("========================================\n");
 
         // =========================================================
-        // PHASE 1: CONNECT TO ARDUINO
+        // CONNECT TO ARDUINO
         // =========================================================
 
         String myPort = "COM5";
@@ -19,14 +19,14 @@ public class main {
         try {
             myBoard.start();
             myBoard.ensureInitializationIsDone();
-            System.out.println("[SYSTEM] Connected to Arduino on " + myPort);
+            System.out.println("Connected to Arduino on " + myPort);
         } catch (Exception e) {
-            System.out.println("[ERROR] Could not connect to board: " + e.getMessage());
+            System.out.println("Could not connect: " + e.getMessage());
             return;
         }
 
         // =========================================================
-        // PHASE 2: CREATE ALL HELPER OBJECTS
+        // CREATE ALL HELPER OBJECTS
         // =========================================================
 
         myOLED oled = new myOLED(myBoard);
@@ -39,277 +39,265 @@ public class main {
         myDATA dataLogger = new myDATA();
         myGRAPH graph = new myGRAPH("Soil Moisture Over Time", "Moisture (%)");
 
-        System.out.println("[SYSTEM] All sensors initialized");
-        System.out.println("[SYSTEM] LED on D4, Buzzer on D5, Pump on D7");
-
         // =========================================================
-        // PHASE 3: WELCOME MESSAGE
+        // WELCOME
         // =========================================================
 
-        oled.showMessage("Welcome to", "Auto Plant Watering");
-        System.out.println("[SYSTEM] Welcome message displayed");
-        Thread.sleep(2000);
-        oled.clear();
+        oled.showMessage("Welcome", "Auto Watering");
+        Thread.sleep(1500);
 
         // =========================================================
-        // PHASE 4: SET DRY THRESHOLD (User adjusts with potentiometer)
+        // SET DRY THRESHOLD (Inverted: right = lower voltage = wetter)
         // =========================================================
 
-        System.out.println("\n[SETUP] Please set your dry threshold using the potentiometer");
-        System.out.println("[SETUP] Turn the knob and press the button when ready");
-
-        double dryThreshold = 2.8;  // Default value
+        double dryThreshold = 3.0;
         int thresholdPercent = 50;
 
-        // Wait for button press
-        while (!button.isPressed()) {
-            // Read potentiometer and convert to threshold voltage (2.0V to 3.6V)
+        oled.clear();
+        oled.showText(0, 0, "Set Dry Threshold");
+
+        while (true) {
+            // INVERTED: turn right = lower threshold (wetter), turn left = higher threshold (drier)
             int potRaw = potentiometer.readRaw();
-            // Invert direction: turn left = lower threshold (wetter), turn right = higher threshold (drier)
             int invertedRaw = 1023 - potRaw;
-            dryThreshold = 2.0 + (invertedRaw / 1023.0) * 1.6;
+            dryThreshold = 2.0 + (invertedRaw / 1023.0) * 2.0;
             thresholdPercent = (invertedRaw * 100) / 1023;
 
-            // Update OLED
-            oled.showThresholdScreen(thresholdPercent, dryThreshold);
+            int numFilled = (thresholdPercent * 16) / 100;
+            StringBuilder bar = new StringBuilder("[");
+            for (int i = 0; i < numFilled; i++) bar.append('#');
+            for (int i = numFilled; i < 16; i++) bar.append('-');
+            bar.append("]");
+
+            oled.showText(0, 16, bar.toString());
+            oled.showText(0, 32, String.format("%.2fV", dryThreshold));
+            oled.showText(0, 48, "Press Button");
+
+            if (button.isPressed()) {
+                Thread.sleep(50);
+                while (button.isPressed()) {
+                    Thread.sleep(50);
+                }
+                break;
+            }
 
             Thread.sleep(100);
         }
 
-        // Wait for button release
-        while (button.isPressed()) {
-            Thread.sleep(50);
-        }
-
-        System.out.println("[SETUP] Threshold set to: " + String.format("%.2f", dryThreshold) + "V");
-
         // =========================================================
-        // PHASE 5: COUNTDOWN (3, 2, 1, READY!)
+        // COUNTDOWN
         // =========================================================
 
-        System.out.println("\n[SETUP] Starting in...");
-
-        // Countdown 3
+        oled.clear();
         oled.showLargeCentered("3");
-        for (int i = 0; i < 3; i++) {
-            led.on();
-            buzzer.play(150, 100);
-            Thread.sleep(100);
-            led.off();
-            Thread.sleep(100);
-        }
-        System.out.println("  3...");
-        Thread.sleep(500);
-
-        // Countdown 2
-        oled.showLargeCentered("2");
-        for (int i = 0; i < 2; i++) {
-            led.on();
-            buzzer.play(150, 100);
-            Thread.sleep(100);
-            led.off();
-            Thread.sleep(100);
-        }
-        System.out.println("  2...");
-        Thread.sleep(500);
-
-        // Countdown 1
-        oled.showLargeCentered("1");
-        for (int i = 0; i < 1; i++) {
-            led.on();
-            buzzer.play(150, 100);
-            Thread.sleep(100);
-            led.off();
-            Thread.sleep(100);
-        }
-        System.out.println("  1...");
-        Thread.sleep(500);
-
-        // READY!
-        oled.showMessage("READY!", "Starting system...");
         led.on();
-        buzzer.play(150, 1500);
-        Thread.sleep(1500);
+        buzzer.play(150, 300);
         led.off();
+        Thread.sleep(700);
+
+        oled.showLargeCentered("2");
+        led.on();
+        buzzer.play(150, 300);
+        led.off();
+        Thread.sleep(700);
+
+        oled.showLargeCentered("1");
+        led.on();
+        buzzer.play(150, 300);
+        led.off();
+        Thread.sleep(700);
+
+        oled.showMessage("GO!", "System Ready");
+        led.on();
+        buzzer.play(150, 1000);
+        led.off();
+        Thread.sleep(1000);
         oled.clear();
 
-        System.out.println("[SETUP] System ready! Starting main loop...\n");
-
         // =========================================================
-        // PHASE 6: MAIN LOOP (Runs forever while button is NOT pressed)
+        // MAIN LOOP
         // =========================================================
 
         int cycleNumber = 0;
 
-        // Main loop - runs as long as emergency button is NOT pressed
-        while (!button.isPressed()) {
+        while (true) {
+
             cycleNumber++;
-            System.out.println("========================================");
             System.out.println("CYCLE #" + cycleNumber);
-            System.out.println("========================================");
 
             // -------------------------------------------------
-            // STEP 1: Check moisture for 5 seconds (take average)
-            // -------------------------------------------------
-            System.out.println("[MOISTURE] Checking soil moisture for 5 seconds...");
-
-            double avgVoltage = moisture.readAverageOver5Seconds();
-            int moisturePercent = moisture.getPercentage(avgVoltage);
-
-            System.out.println("[MOISTURE] Average: " + String.format("%.2f", avgVoltage) + "V (" + moisturePercent + "%)");
-            System.out.println("[MOISTURE] Threshold: " + String.format("%.2f", dryThreshold) + "V");
-
-            // -------------------------------------------------
-            // STEP 2: Decide to water or not
+            // CHECK MOISTURE FOR 5 SECONDS (1 sample per second)
             // -------------------------------------------------
 
-            boolean isDry = avgVoltage > dryThreshold;
-            String action;
+            oled.clear();
+            oled.showText(0, 0, "Checking Moisture");
 
-            if (isDry) {
-                // SOIL IS DRY - WATER FOR 5 SECONDS
-                System.out.println("[DECISION] SOIL IS DRY! Watering for 5 seconds...");
-                action = "WATERING";
+            double voltageSum = 0;
+            boolean emergency = false;
 
-                oled.showMessage("DRY!", "Watering for 5s");
+            for (int second = 1; second <= 5; second++) {
+
+                voltageSum += moisture.readVoltage();
+                oled.showText(0, 20, "Time: " + second + "/5s");
+
+                int percentComplete = (second * 100) / 5;
+                int numFilled = (percentComplete * 16) / 100;
+                StringBuilder bar = new StringBuilder("[");
+                for (int x = 0; x < numFilled; x++) bar.append('=');
+                for (int x = numFilled; x < 16; x++) bar.append('-');
+                bar.append("]");
+                oled.showText(0, 40, bar.toString());
+
                 Thread.sleep(1000);
 
-                // Water for 5 seconds
+                // Emergency check at END of each second
+                if (button.isPressed()) {
+                    emergency = true;
+                    break;
+                }
+            }
+
+            if (emergency) {
+                break;
+            }
+
+            double avgVoltage = voltageSum / 5;
+            int moisturePercent = moisture.getPercentage(avgVoltage);
+
+            // Get current threshold (inverted)
+            int potRaw = potentiometer.readRaw();
+            int invertedRaw = 1023 - potRaw;
+            dryThreshold = 2.0 + (invertedRaw / 1023.0) * 2.0;
+
+            boolean isDry = avgVoltage > dryThreshold;
+            System.out.println("Moisture %: " + moisturePercent + "%, Moisture V: " + String.format("%.2f", avgVoltage) + ", Threshold: " + String.format("%.2f", dryThreshold) + "V");
+
+            // -------------------------------------------------
+            // WATER FOR 5 SECONDS IF DRY
+            // -------------------------------------------------
+
+            if (isDry) {
+                oled.clear();
+                oled.showText(0, 0, "DRY!");
+                oled.showText(0, 20, "Watering...");
+
                 pump.on();
                 led.on();
-                buzzer.play(200, 5000);  // Buzzer on for 5 seconds
 
-                for (int i = 5; i > 0; i--) {
-                    oled.showWatering(i);
-                    System.out.println("  Watering... " + i + " seconds left");
-                    Thread.sleep(1000);
+                for (int second = 1; second <= 5; second++) {
+                    oled.showText(0, 40, "Time: " + second + "/5s");
+                    buzzer.play(200, 1000);
+
+                    // Emergency check at END of each second
+                    if (button.isPressed()) {
+                        emergency = true;
+                        break;
+                    }
                 }
 
                 pump.off();
                 led.off();
                 buzzer.stop();
 
-            } else {
-                // SOIL IS WET - NO WATERING
-                System.out.println("[DECISION] SOIL IS WET! No watering needed.");
-                action = "IDLE";
+                if (emergency) {
+                    break;
+                }
 
-                oled.showWet();
+            } else {
+                oled.clear();
+                oled.showText(0, 20, "WET!");
+                oled.showText(0, 40, "No watering");
                 Thread.sleep(2000);
             }
 
             // -------------------------------------------------
-            // STEP 3: Log data and update graph
+            // LOG DATA
             // -------------------------------------------------
 
-            // Get current threshold from potentiometer (for next cycle)
-            int potRaw = potentiometer.readRaw();
-            int invertedRaw = 1023 - potRaw;
-            double currentThreshold = 2.0 + (invertedRaw / 1023.0) * 1.6;
-            int thresholdPercentCurrent = (invertedRaw * 100) / 1023;
-
-            // Add to data logger (ArrayList + CSV)
-            dataLogger.addReading(moisturePercent, currentThreshold, action);
-
-            // Update live graph
+            dataLogger.addReading(moisturePercent, dryThreshold, isDry ? "WATER" : "IDLE");
             graph.addDataPoint(moisturePercent);
 
-            System.out.println("[DATA] Cycle " + cycleNumber + " logged");
-
             // -------------------------------------------------
-            // STEP 4: 60 SECOND WAIT (with live threshold adjustment)
+            // 60 SECOND WAIT
             // -------------------------------------------------
-
-            System.out.println("[WAIT] Entering 60 second wait period...");
-            System.out.println("[WAIT] You can adjust the dry threshold using the potentiometer");
-
-            for (int second = 60; second > 0; second--) {
-                // Flash LED once per second (250ms on)
-                led.on();
-                Thread.sleep(250);
-                led.off();
-
-                // Read potentiometer for live threshold update
-                int currentPotRaw = potentiometer.readRaw();
-                int currentInverted = 1023 - currentPotRaw;
-                double newThreshold = 2.0 + (currentInverted / 1023.0) * 1.6;
-                int newThresholdPercent = (currentInverted * 100) / 1023;
-
-                // Calculate time remaining percentage
-                int timePercent = (second * 100) / 60;
-
-                // Update OLED with double bar
-                // Top bar: Time Remaining using '='
-                // Bottom bar: Threshold using '#'
-                oled.showDoubleBar(0, "Time Remaining", timePercent, '=',
-                        32, "DRY Threshold", newThresholdPercent, '#');
-
-                // Also show voltage value
-                oled.showText(0, 55, String.format("Threshold: %.2fV", newThreshold));
-
-                // Update the dry threshold variable for next cycle (user can change during wait)
-                dryThreshold = newThreshold;
-                thresholdPercent = newThresholdPercent;
-
-                // Show status every 10 seconds in console
-                if (second % 10 == 0) {
-                    System.out.println("[WAIT] " + second + " seconds remaining... Threshold: " +
-                            String.format("%.2f", dryThreshold) + "V");
-                }
-
-                Thread.sleep(750);  // Remaining time after LED flash
-            }
 
             oled.clear();
-            System.out.println("[WAIT] 60 seconds complete. Starting next cycle...\n");
+            oled.showText(0, 0, "Wait 60s");
+            oled.showText(0, 16, "Adjust Threshold");
+
+            for (int second = 1; second <= 60; second++) {
+
+                int timeLeft = 60 - second + 1;
+                oled.showText(0, 32, "Time: " + timeLeft + "s");
+
+                // Read and update threshold live (inverted)
+                int currentRaw = potentiometer.readRaw();
+                int currentInverted = 1023 - currentRaw;
+                double newThreshold = 2.0 + (currentInverted / 1023.0) * 2.0;
+                int newPercent = (currentInverted * 100) / 1023;
+
+                int numFilled = (newPercent * 16) / 100;
+                StringBuilder bar = new StringBuilder("[");
+                for (int x = 0; x < numFilled; x++) bar.append('#');
+                for (int x = numFilled; x < 16; x++) bar.append('-');
+                bar.append("]");
+                oled.showText(0, 48, bar.toString());
+                oled.showText(80, 48, String.format("%.2fV", newThreshold));
+
+                dryThreshold = newThreshold;
+
+                Thread.sleep(1000);
+
+                // Emergency check at END of each second
+                if (button.isPressed()) {
+                    emergency = true;
+                    break;
+                }
+            }
+
+            if (emergency) {
+                break;
+            }
         }
 
         // =========================================================
-        // PHASE 7: EMERGENCY STOP (Button was pressed)
+        // EMERGENCY STOP
         // =========================================================
 
-        System.out.println("\n!!! EMERGENCY STOP ACTIVATED !!!");
+        System.out.println("\nEMERGENCY STOP!");
 
-        // Stop pump immediately
         pump.off();
 
-        // Show emergency on OLED
-        oled.showEmergency();
+        oled.clear();
+        oled.showText(0, 16, "EMERGENCY!");
+        oled.showText(0, 32, "Stopping System");
 
-        // Emergency buzzer pattern (siren-like)
-        for (int i = 0; i < 6; i++) {
-            buzzer.play(200, 150);
-            Thread.sleep(100);
-            buzzer.play(100, 150);
-            Thread.sleep(100);
-        }
-
-        // Flash LED rapidly
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             led.on();
+            buzzer.play(200, 200);
             Thread.sleep(100);
             led.off();
+            buzzer.play(100, 200);
             Thread.sleep(100);
         }
 
         buzzer.stop();
-        System.out.println("[EMERGENCY] System shutting down...");
+        led.off();
+
         Thread.sleep(2000);
 
+        // Clear OLED right before exit
+        oled.clear();
+
         // =========================================================
-        // PHASE 8: CLEANUP AND EXIT
+        // CLEANUP
         // =========================================================
 
-        System.out.println("\n[SYSTEM] Closing data logger...");
         dataLogger.close();
-
-        System.out.println("[SYSTEM] Closing graph window...");
-        graph.close();
-
-        System.out.println("[SYSTEM] Disconnecting from Arduino...");
+        // graph.close();  // REMOVED - StdDraw doesn't need this
         myBoard.stop();
 
-        System.out.println("[SYSTEM] Plant Watering System terminated.");
+        System.out.println("System terminated.");
         System.exit(0);
     }
 }
