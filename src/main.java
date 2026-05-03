@@ -114,21 +114,13 @@ public class Main {
         Thread.sleep(1000);
         oled.clear();
 
-        // =========================================================
-        // MAIN LOOP
-        // =========================================================
-
+        // Main loop
         int cycleNumber = 0;
-
         while (true) {
-
             cycleNumber++;
             System.out.println("CYCLE #" + cycleNumber);
 
-            // -------------------------------------------------
-            // CHECK MOISTURE FOR 5 SECONDS (1 sample per second)
-            // -------------------------------------------------
-
+            // Moisture sampling
             oled.clear();
             oled.showText(0, 0, "Checking Moisture");
 
@@ -136,7 +128,6 @@ public class Main {
             boolean emergency = false;
 
             for (int second = 1; second <= 5; second++) {
-
                 voltageSum += moisture.readVoltage();
                 oled.showText(0, 20, "Time: " + second + "/5s");
 
@@ -150,7 +141,6 @@ public class Main {
 
                 Thread.sleep(1000);
 
-                // Emergency check at END of each second
                 if (button.isPressed()) {
                     emergency = true;
                     break;

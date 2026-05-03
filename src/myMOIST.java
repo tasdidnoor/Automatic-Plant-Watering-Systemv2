@@ -7,11 +7,10 @@ public class myMOIST {
     private IODevice board;
     private boolean isTestMode;
 
-    // Your calibration values
+    // Threshold calibration values
     private final double DRY_VOLTAGE = 3.64;
     private final double WET_VOLTAGE = 2.68;
 
-    // Constructor
     public myMOIST(IODevice board, int pinNumber) throws Exception {
         this.board = board;
         this.isTestMode = (board == null);
@@ -22,13 +21,9 @@ public class myMOIST {
         }
     }
 
-    // Read raw value (0 to 1023)
     public int readRaw() {
-        if (isTestMode) {
-            return 512;  // Default value for testing
-        }
-        long value = moisturePin.getValue();
-        return (int) value;
+        if (isTestMode) return 512;
+        return (int) moisturePin.getValue();
     }
 
     // Read voltage (0 to 5V)

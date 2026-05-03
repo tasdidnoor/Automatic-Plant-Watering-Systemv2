@@ -8,7 +8,6 @@ public class myOLED {
     private final int OLED_WIDTH = 128;
     private final int BAR_MAX_CHARS = 20;  // 20 characters for bar
 
-    // Constructor
     public myOLED(IODevice board) throws Exception {
         I2CDevice i2cObject = board.getI2CDevice((byte) 0x3C);
         oled = new SSD1306(i2cObject, SSD1306.Size.SSD1306_128_64);
@@ -17,13 +16,12 @@ public class myOLED {
         oled.display();
     }
 
-    // Clear entire screen
     public void clear() {
         try {
             oled.getCanvas().clear();
             oled.display();
         } catch (Exception e) {
-            System.out.println("Clear error: " + e.getMessage());
+            System.err.println("OLED clear error: " + e.getMessage());
         }
     }
 
