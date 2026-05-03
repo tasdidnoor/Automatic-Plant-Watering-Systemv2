@@ -2,7 +2,7 @@
 
 A modern, high-tech plant watering system that keeps your green friends happy automatically! This project uses **Java (Firmata4j)** to talk to an **Arduino** board, providing a real-time monitoring dashboard, data logging, and an interactive hardware setup.
 
-Live Demo: [tasdidnoor.com/WateringSystemJAVA](https://tasdidnoor.com/WateringSystemJAVA/)
+Live Demo: [tasdidnoor.com/WateringSystemJAVA](https://tasdidnoor.com/AutomaticPlantWateringSystem_JAVA/)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/tasdidnoor/Assets/main/PlantWatering_JAVA/MainSetup.png" width="97%" alt="Main Setup" />
